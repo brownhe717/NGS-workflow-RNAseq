@@ -53,7 +53,7 @@ cd path/to/project-workdir
 Deploy the workflow:
 
 ```         
-snakedeploy deploy-workflow  https://github.com/tjgibson/NGS-workflow-RNAseq . --branch main 
+snakedeploy deploy-workflow  https://github.com/brownhe717/NGS-workflow-RNAseq . --branch main 
 ```
 
 This command will create all the files necessary for running this workflow.
