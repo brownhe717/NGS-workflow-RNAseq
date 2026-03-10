@@ -122,4 +122,3 @@ rule hisat2_index:
     threads: 8
     wrapper:
         "v1.3.2/bio/hisat2/index"
-		
