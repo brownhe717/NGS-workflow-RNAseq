@@ -118,7 +118,10 @@ rule hisat2_index:
         "logs/hisat2_index_genome.log"
     params:
         prefix=lambda wildcards, output: output[0],
-        extra=config["params"]["hisat2_index"]  # optional parameters
+        extra=config["params"]["hisat2_index"]
     threads: 8
-    wrapper:
-        "v1.3.2/bio/hisat2/index"
+    shell:
+        r"""
+        gunzip -c {input.fasta} > resources/genome.fasta
+        hisat2-build -p {threads} resources/genome.fasta {params.prefix} > {log} 2>&1
+        """
