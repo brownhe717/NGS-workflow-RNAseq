@@ -113,13 +113,20 @@ rule hisat2_index:
     input:
         fasta="resources/genome.fasta.gz"
     output:
-        directory("resources/hisat2_index")
+        "resources/hisat2_index.1.ht2",
+        "resources/hisat2_index.2.ht2",
+        "resources/hisat2_index.3.ht2",
+        "resources/hisat2_index.4.ht2",
+        "resources/hisat2_index.5.ht2",
+        "resources/hisat2_index.6.ht2",
+        "resources/hisat2_index.7.ht2",
+        "resources/hisat2_index.8.ht2"
     log:
         "logs/hisat2_index_genome.log"
     conda:
         "../envs/hisat2.yaml"
     params:
-        prefix=lambda wildcards, output: output[0],
+        prefix="resources/hisat2_index",
         extra=config["params"]["hisat2_index"]
     threads: 8
     shell:
