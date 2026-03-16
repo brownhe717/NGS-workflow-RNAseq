@@ -42,11 +42,12 @@ rule hisat2_align:
     log:
         "logs/hisat2_align/{sample}.log"
     params:
-        idx_prefix="resources/hisat2_index",
+        idx="resources/hisat2_index",
         extra=config["params"]["hisat2_align"]
     threads: 8
     wrapper:
         "v1.3.2/bio/hisat2/align"
+
 rule samtools_sort:
     input:
        "results/aligned_reads/mapped/{sample}.bam"
