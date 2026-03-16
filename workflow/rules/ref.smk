@@ -116,6 +116,8 @@ rule hisat2_index:
         directory("resources/hisat2_index")
     log:
         "logs/hisat2_index_genome.log"
+    conda:
+        "../envs/hisat2.yaml"
     params:
         prefix=lambda wildcards, output: output[0],
         extra=config["params"]["hisat2_index"]
@@ -123,5 +125,5 @@ rule hisat2_index:
     shell:
         r"""
         gunzip -c {input.fasta} > resources/genome.fasta
-        hisat2-build -p {threads} resources/genome.fasta {params.prefix} > {log} 2>&1
+        hisat2-build {params.extra} -p {threads} resources/genome.fasta {params.prefix} > {log} 2>&1
         """
