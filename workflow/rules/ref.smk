@@ -27,7 +27,7 @@ rule get_genome_annotation:
     cache: True
     shell:
         r"""
-        curl {params.link} > {output} 2> {log}
+        curl {params.link} > {output} 2> {log} | gunzip -c > {output}
         """
 
 
