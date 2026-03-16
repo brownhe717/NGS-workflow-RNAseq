@@ -34,20 +34,19 @@ rule merge_fastqs:
         "cat {input} > {output} 2> {log}"
         
 rule hisat2_align:
-	input:
-		reads=get_hisat2_input,
-		idx=rules.hisat2_index.output
-	output:
-		temp("results/aligned_reads/mapped/{sample}.bam")
-	log:
-		 "logs/hisat2_align/{sample}.log"
-	params:
-		idx= lambda wildcards, input: input.idx,
-		extra=config["params"]["hisat2_align"]   # optional parameters
-	threads: 8  # Use at least two threads
-	wrapper:
-		"v1.3.2/bio/hisat2/align"
-
+    input:
+        reads=get_hisat2_input,
+        idx=rules.hisat2_index.output
+    output:
+        temp("results/aligned_reads/mapped/{sample}.bam")
+    log:
+        "logs/hisat2_align/{sample}.log"
+    params:
+        idx_prefix="resources/hisat2_index",
+        extra=config["params"]["hisat2_align"]
+    threads: 8
+    wrapper:
+        "v1.3.2/bio/hisat2/align"
 rule samtools_sort:
     input:
        "results/aligned_reads/mapped/{sample}.bam"
