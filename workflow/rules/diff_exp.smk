@@ -1,7 +1,7 @@
 rule feature_counts:
 	input:
 		samples=get_featurecounts_input,  # list of sam or bam files
-		annotation="resources/dmel-all-r6.61.gtf",
+		annotation="resources/dm6.ncbiRefSeq.gtf",
 
 	output:
 		multiext(
