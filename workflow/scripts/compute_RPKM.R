@@ -41,12 +41,12 @@ gene_annotation <- rtracklayer::import(snakemake@input[["annotation"]]) |>
   mcols() |>
   as.data.frame() |>
   filter(type == "gene") |>
-  dplyr::select(gene_id, gene_symbol)
+  dplyr::select(gene_id, gene_name)
 
 rpkm_table <- rpkm_table |> 
   rownames_to_column(var = "gene_id") |> 
   left_join(gene_annotation, by = "gene_id") |> 
-  select(gene_id, gene_symbol, everything())
+  select(gene_id, gene_name, everything())
 
 # write output table ===========================================================
 rpkm_table |> 
