@@ -21,7 +21,7 @@ gtf <- rtracklayer::import(snakemake@input[["annotation"]]) %>%
     mcols() %>%
     as.data.frame() %>%
     filter(type == "gene") %>%
-    dplyr::select(gene_id, gene_symbol)
+    dplyr::select(gene_id, gene_name)
 
 # add gene symbol to results
 out_table <- dplyr::left_join(results, gtf, by = "gene_id")
