@@ -1,8 +1,7 @@
 # path or URL to sample sheet (TSV format, columns: sample, condition, ...)
 samples: config/samples.tsv
+
 # path or URL to sequencing unit sheet (TSV format, columns: sample, unit, fq1, fq2)
-# Units are technical replicates (e.g. lanes, or resequencing of the same biological
-# sample).
 units: config/units.tsv
 
 # optional inclusion of certain rules -------------------------------------------------------
@@ -22,33 +21,74 @@ ref_annotation:
   name: flybase_dm6
   link: https://ftp.flybase.org/genomes/dmel/current/gtf/dmel-all-r6.60.gtf.gz
 
-# spike-in genome options ------------------------------------------------------------------
+# concatenated mel/sim hybrid ASE reference ------------------------------------------------
+ref_concat:
+  activate: True
+
+  genome:
+    name: mel_sim_concat
+    fasta: resources/mel_sim_concat/mel_sim_concat.fa
+
+  annotation:
+    name: mel_sim_concat_gtf
+    gtf: resources/mel_sim_concat/mel_sim_concat.gtf
+
+  hisat2_index:
+    prefix: resources/mel_sim_concat/hisat2_index/mel_sim_concat
+
+# hybrid allele-specific expression options ------------------------------------------------
+hybrid_ase:
+  activate: True
+
+  # HISAT2 multimapping behavior
+  keep_multimappers: True
+  hisat2_k: 10
+
+  # featureCounts multimapper behavior
+  featurecounts_multimappers: True
+  featurecounts_fraction: True
+
+  # diagnostic SNP filtering
+  min_snp_depth: 10
+
+  # Set to True later if you want a stricter ASE branch using only uniquely mapped reads
+  unique_only_ase: False
+
+# spike-in genome options -------------------------------------------------------------------
 use_spikeIn: False
 
 spikeIn_genome:
   name: yeast_w303
   link: http://sgd-archive.yeastgenome.org/sequence/strains/W303/W303_SGD_2015_JRIU00000000/W303_SGD_2015_JRIU00000000.fsa.gz
 
-
-# DESeq2 options -------------------------------------------------------------------------
+# DESeq2 options ----------------------------------------------------------------------------
 run_diff_exp: TRUE
+
 diff_exp:
   experiments:
-    GAF_RNAseq:
-      # contrasts for the deseq2 results method
+    Hybrid_RNAseq:
       contrasts:
-        degrad-vs-control:
-          - degrad
-          - control
+        hybrid-vs-control:
+          - Hybrid_experimental
+          - Hybrid_melanogaster_control
   model: ~condition
   count_threshold: 50
   padj_cutoff: 0.05
   log2FC_cutoff: 1
 
-# changes to rule paramters ---------------------------------------------------------------
+# changes to rule parameters ----------------------------------------------------------------
 params:
   hisat2_index: ""
-  hisat2_align: "-k 2 --very-sensitive --no-mixed --no-discordant"
-  filter_multireads: "-f bam -F '(mapping_quality >= 30) and ([XS] == null)'" 
+
+  # Base HISAT2 parameters.
+  # The -k value is controlled separately by hybrid_ase.hisat2_k.
+  hisat2_align: "--very-sensitive --no-mixed --no-discordant"
+
+  # Retain multimapping reads instead of filtering to unique alignments only.
+  filter_multireads: "-f bam -F '(mapping_quality >= 0)'"
+
+  # featureCounts options for paired-end RNA-seq with multimappers retained fractionally.
+  featurecounts: "-p -M --fraction"
+
   bigwigs_ind: "--binSize 10"
   bigwigs_merged: "--binSize 10"
