@@ -23,6 +23,7 @@ include: "rules/common.smk"
 include: "rules/ref.smk"
 include: "rules/align.smk"
 include: "rules/filter.smk"
+include: "rules/hybrid_ase.smk"
 include: "rules/bigwigs.smk"
 include: "rules/diff_exp.smk"
 
