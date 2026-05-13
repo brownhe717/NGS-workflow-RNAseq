@@ -74,6 +74,37 @@ rule hisat2_align_concat:
         samtools index {output.bam}
         """
 
+rule filter_unique_concat_bam:
+    input:
+        bam="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+        bai="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam.bai"
+    output:
+        bam="results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
+        bai="results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam.bai"
+    conda:
+        HYBRID_ASE_ENV
+    params:
+        min_mapq=config["hybrid_ase"]["unique_bam_min_mapq"]
+    log:
+        "logs/hybrid_ase/filter_unique/{sample_name}.log"
+    threads: 4
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/aligned_unique logs/hybrid_ase/filter_unique
+
+        samtools view \
+            -h \
+            -q {params.min_mapq} \
+            {input.bam} \
+            | awk '$0 ~ /^@/ || $0 ~ /NH:i:1/' \
+            | samtools sort \
+                -@ {threads} \
+                -o {output.bam}
+
+        samtools index {output.bam}
+
+        echo "Created unique-only BAM from {input.bam}" > {log}
+        """
 
 rule featurecounts_concat:
     input:
