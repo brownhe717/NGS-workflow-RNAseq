@@ -30,4 +30,10 @@ include: "rules/diff_exp.smk"
 ##### target rules #####
 rule all:
     input:
-        get_final_output()
+        get_final_output(),
+        "results/hybrid_ase/counts/concat_featureCounts.txt",
+        "results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz",
+        expand(
+            "results/hybrid_ase/allele_counts/{sample_name}.diagnostic_sites.bcf",
+            sample_name=samples.query("ase_role == 'hybrid'").index
+        )
