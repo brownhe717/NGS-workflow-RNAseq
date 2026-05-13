@@ -106,7 +106,7 @@ rule filter_unique_concat_bam:
         echo "Created unique-only BAM from {input.bam}" > {log}
         """
 
-rule featurecounts_concat:
+rule featurecounts_concat_multi:
     input:
         bam=expand(
             "results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
@@ -114,13 +114,13 @@ rule featurecounts_concat:
         ),
         gtf=config["ref_concat"]["annotation"]["gtf"]
     output:
-        counts="results/hybrid_ase/counts/concat_featureCounts.txt"
+        counts="results/hybrid_ase/counts/concat_featureCounts_multi_fraction.txt"
     conda:
         HYBRID_ASE_ENV
     params:
-        extra=config["params"]["featurecounts"]
+        extra=config["params"]["featurecounts_multi"]
     log:
-        "logs/hybrid_ase/featureCounts_concat.log"
+        "logs/hybrid_ase/featureCounts_concat_multi.log"
     threads: 8
     shell:
         r"""
@@ -135,6 +135,34 @@ rule featurecounts_concat:
             > {log} 2>&1
         """
 
+rule featurecounts_concat_unique:
+    input:
+        bam=expand(
+            "results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
+            sample_name=samples.index
+        ),
+        gtf=config["ref_concat"]["annotation"]["gtf"]
+    output:
+        counts="results/hybrid_ase/counts/concat_featureCounts_unique.txt"
+    conda:
+        HYBRID_ASE_ENV
+    params:
+        extra=config["params"]["featurecounts_unique"]
+    log:
+        "logs/hybrid_ase/featureCounts_concat_unique.log"
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/counts logs/hybrid_ase
+
+        featureCounts \
+            -T {threads} \
+            -a {input.gtf} \
+            -o {output.counts} \
+            {params.extra} \
+            {input.bam} \
+            > {log} 2>&1
+        """
 
 rule call_parental_snps_concat:
     input:
