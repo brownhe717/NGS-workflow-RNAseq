@@ -98,8 +98,14 @@ rule featurecounts_concat:
 
 rule call_parental_snps_concat:
     input:
-        mel="results/hybrid_ase/aligned/Hybrid_melanogaster_control_rep1.concat.sorted.bam",
-        sim="results/hybrid_ase/aligned/Hybrid_simulans_control_rep1.concat.sorted.bam",
+        mel=expand(
+            "results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+            sample_name=samples.query("ase_role == 'mel_parent'").index
+        ),
+        sim=expand(
+            "results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+            sample_name=samples.query("ase_role == 'sim_parent'").index
+        ),
         ref=config["ref_concat"]["genome"]["fasta"]
     output:
         vcf="results/hybrid_ase/snps/parental_raw.vcf.gz",
@@ -125,7 +131,6 @@ rule call_parental_snps_concat:
 
         tabix -p vcf {output.vcf}
         """
-
 
 rule filter_diagnostic_snps:
     input:
