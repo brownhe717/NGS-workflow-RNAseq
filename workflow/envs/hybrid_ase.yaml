@@ -1,0 +1,24 @@
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+channel_priority: flexible
+
+dependencies:
+  - python=3.11
+  - pandas
+  - numpy
+  - hisat2
+  - samtools
+  - subread
+  - bcftools
+  - htslib
+  - pigz
+  - wget
+  - curl
+  - r-base=4.3
+  - r-data.table
+  - r-dplyr
+  - r-readr
+  - bioconductor-deseq2
