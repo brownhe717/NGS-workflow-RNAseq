@@ -99,7 +99,8 @@ params:
   filter_multireads: "-f bam -F '(mapping_quality >= 0)'"
 
   # Paired-end featureCounts with multimappers retained fractionally.
-  featurecounts: "-p -M --fraction"
+  featurecounts_unique: "-p"
+  featurecounts_multi: "-p -M --fraction"
 
   bigwigs_ind: "--binSize 10"
   bigwigs_merged: "--binSize 10"
