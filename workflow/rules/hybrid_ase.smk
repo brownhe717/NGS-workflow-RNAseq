@@ -96,14 +96,16 @@ rule filter_unique_concat_bam:
             -h \
             -q {params.min_mapq} \
             {input.bam} \
+            2> {log} \
             | awk '$0 ~ /^@/ || $0 ~ /NH:i:1/' \
             | samtools sort \
                 -@ {threads} \
-                -o {output.bam}
+                -o {output.bam} \
+                2>> {log}
 
-        samtools index {output.bam}
+        samtools index {output.bam} 2>> {log}
 
-        echo "Created unique-only BAM from {input.bam}" > {log}
+        echo "Created unique-only BAM from {input.bam}" >> {log}
         """
 
 rule featurecounts_concat_multi:
