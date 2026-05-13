@@ -36,4 +36,12 @@ rule all:
         expand(
             "results/hybrid_ase/allele_counts/{sample_name}.diagnostic_sites.bcf",
             sample_name=samples.query("ase_role == 'hybrid'").index
+        ),
+        expand(
+            "results/hybrid_ase/bigwigs/multimapper_inclusive/{sample_name}.bw",
+            sample_name=samples.index
+        ),
+        expand(
+            "results/hybrid_ase/bigwigs/unique_only/{sample_name}.bw",
+            sample_name=samples.index
         )
