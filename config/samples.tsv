@@ -1,7 +1,7 @@
-sample_name	condition	experiment
-sfGFP-GAF-N_control_rep1	control	GAF_RNAseq
-sfGFP-GAF-N_control_rep2	control	GAF_RNAseq
-sfGFP-GAF-N_control_rep3	control	GAF_RNAseq
-sfGFP-GAF-N_degradFP_rep1	degrad	GAF_RNAseq
-sfGFP-GAF-N_degradFP_rep2	degrad	GAF_RNAseq
-sfGFP-GAF-N_degradFP_rep3	degrad	GAF_RNAseq
+sample_name	condition	experiment	ase_role
+Hybrid_melanogaster_control_rep1	Hybrid_melanogaster_control	Hybrid_RNAseq	mel_parent
+Hybrid_melanogaster_control_rep2	Hybrid_melanogaster_control	Hybrid_RNAseq	mel_parent
+Hybrid_experimental_rep1	Hybrid_experimental	Hybrid_RNAseq	hybrid
+Hybrid_experimental_rep2	Hybrid_experimental	Hybrid_RNAseq	hybrid
+Hybrid_simulans_control_rep1	Hybrid_simulans_control	Hybrid_RNAseq	sim_parent
+Hybrid_simulans_control_rep2	Hybrid_simulans_control	Hybrid_RNAseq	sim_parent
