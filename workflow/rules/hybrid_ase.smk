@@ -1,6 +1,9 @@
 import os
 
 
+HYBRID_ASE_ENV = "../envs/hybrid_ase.yaml"
+
+
 rule hisat2_index_concat:
     input:
         fasta=config["ref_concat"]["genome"]["fasta"]
@@ -9,6 +12,8 @@ rule hisat2_index_concat:
             config["ref_concat"]["hisat2_index"]["prefix"] + ".{i}.ht2",
             i=range(1, 9)
         )
+    conda:
+        HYBRID_ASE_ENV
     params:
         prefix=config["ref_concat"]["hisat2_index"]["prefix"],
         index_dir=lambda wc: os.path.dirname(
@@ -40,6 +45,8 @@ rule hisat2_align_concat:
     output:
         bam="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
         bai="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam.bai"
+    conda:
+        HYBRID_ASE_ENV
     params:
         idx_prefix=config["ref_concat"]["hisat2_index"]["prefix"],
         extra=lambda wc: (
@@ -77,6 +84,8 @@ rule featurecounts_concat:
         gtf=config["ref_concat"]["annotation"]["gtf"]
     output:
         counts="results/hybrid_ase/counts/concat_featureCounts.txt"
+    conda:
+        HYBRID_ASE_ENV
     params:
         extra=config["params"]["featurecounts"]
     log:
@@ -110,6 +119,8 @@ rule call_parental_snps_concat:
     output:
         vcf="results/hybrid_ase/snps/parental_raw.vcf.gz",
         tbi="results/hybrid_ase/snps/parental_raw.vcf.gz.tbi"
+    conda:
+        HYBRID_ASE_ENV
     log:
         "logs/hybrid_ase/call_parental_snps_concat.log"
     threads: 8
@@ -132,18 +143,23 @@ rule call_parental_snps_concat:
         tabix -p vcf {output.vcf}
         """
 
+
 rule filter_diagnostic_snps:
     input:
         vcf="results/hybrid_ase/snps/parental_raw.vcf.gz"
     output:
         vcf="results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz",
         tbi="results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz.tbi"
+    conda:
+        HYBRID_ASE_ENV
     params:
         min_depth=config["hybrid_ase"]["min_snp_depth"]
     log:
         "logs/hybrid_ase/filter_diagnostic_snps.log"
     shell:
         r"""
+        mkdir -p results/hybrid_ase/snps logs/hybrid_ase
+
         bcftools view \
             -v snps \
             -m2 -M2 \
@@ -164,6 +180,8 @@ rule hybrid_snp_pileup:
         ref=config["ref_concat"]["genome"]["fasta"]
     output:
         bcf="results/hybrid_ase/allele_counts/{sample_name}.diagnostic_sites.bcf"
+    conda:
+        HYBRID_ASE_ENV
     log:
         "logs/hybrid_ase/allele_counts/{sample_name}.log"
     shell:
