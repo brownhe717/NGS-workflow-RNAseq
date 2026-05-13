@@ -306,3 +306,158 @@ rule make_bigwigs_hybrid_unique:
             -p {threads} \
             {params.extra}
         """
+
+# Hybrid bigWig helper: merge BAMs by condition/sample group
+HYBRID_SAMPLE_GROUPS = sorted(samples["condition"].unique())
+
+
+def get_hybrid_multi_bams_by_group(wildcards):
+    group_samples = samples.query("condition == @wildcards.sample_group").index
+    return expand(
+        "results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+        sample_name=group_samples
+    )
+
+
+def get_hybrid_unique_bams_by_group(wildcards):
+    group_samples = samples.query("condition == @wildcards.sample_group").index
+    return expand(
+        "results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
+        sample_name=group_samples
+    )
+
+
+rule merge_hybrid_multi_bam:
+    input:
+        get_hybrid_multi_bams_by_group
+    output:
+        bam="results/hybrid_ase/aligned_merged/multimapper_inclusive/{sample_group}.bam",
+        bai="results/hybrid_ase/aligned_merged/multimapper_inclusive/{sample_group}.bam.bai"
+    conda:
+        HYBRID_ASE_ENV
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/aligned_merged/multimapper_inclusive
+
+        samtools merge \
+            -@ {threads} \
+            -f \
+            {output.bam} \
+            {input}
+
+        samtools index {output.bam}
+        """
+
+
+rule merge_hybrid_unique_bam:
+    input:
+        get_hybrid_unique_bams_by_group
+    output:
+        bam="results/hybrid_ase/aligned_merged/unique_only/{sample_group}.bam",
+        bai="results/hybrid_ase/aligned_merged/unique_only/{sample_group}.bam.bai"
+    conda:
+        HYBRID_ASE_ENV
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/aligned_merged/unique_only
+
+        samtools merge \
+            -@ {threads} \
+            -f \
+            {output.bam} \
+            {input}
+
+        samtools index {output.bam}
+        """
+
+
+rule make_bigwigs_hybrid_multi_merged:
+    input:
+        bam="results/hybrid_ase/aligned_merged/multimapper_inclusive/{sample_group}.bam",
+        bai="results/hybrid_ase/aligned_merged/multimapper_inclusive/{sample_group}.bam.bai"
+    output:
+        "results/hybrid_ase/bigwigs/multimapper_inclusive_merged/{sample_group}.bw"
+    conda:
+        "../envs/deeptools.yaml"
+    params:
+        extra=config["params"]["bigwigs_merged"]
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive_merged
+
+        bamCoverage \
+            --bam {input.bam} \
+            -o {output} \
+            -p {threads} \
+            {params.extra}
+        """
+
+
+rule make_bigwigs_hybrid_unique_merged:
+    input:
+        bam="results/hybrid_ase/aligned_merged/unique_only/{sample_group}.bam",
+        bai="results/hybrid_ase/aligned_merged/unique_only/{sample_group}.bam.bai"
+    output:
+        "results/hybrid_ase/bigwigs/unique_only_merged/{sample_group}.bw"
+    conda:
+        "../envs/deeptools.yaml"
+    params:
+        extra=config["params"]["bigwigs_merged"]
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/bigwigs/unique_only_merged
+
+        bamCoverage \
+            --bam {input.bam} \
+            -o {output} \
+            -p {threads} \
+            {params.extra}
+        """
+
+
+rule zscore_normalize_hybrid_multi_ind_bigwigs:
+    input:
+        "results/hybrid_ase/bigwigs/multimapper_inclusive/{sample_name}.bw"
+    output:
+        "results/hybrid_ase/bigwigs_zscore/multimapper_inclusive/individual/{sample_name}.bw"
+    conda:
+        "../envs/zscore_normalize_bw.yaml"
+    script:
+        "../scripts/zscore_normalize_bw.R"
+
+
+rule zscore_normalize_hybrid_unique_ind_bigwigs:
+    input:
+        "results/hybrid_ase/bigwigs/unique_only/{sample_name}.bw"
+    output:
+        "results/hybrid_ase/bigwigs_zscore/unique_only/individual/{sample_name}.bw"
+    conda:
+        "../envs/zscore_normalize_bw.yaml"
+    script:
+        "../scripts/zscore_normalize_bw.R"
+
+
+rule zscore_normalize_hybrid_multi_merged_bigwigs:
+    input:
+        "results/hybrid_ase/bigwigs/multimapper_inclusive_merged/{sample_group}.bw"
+    output:
+        "results/hybrid_ase/bigwigs_zscore/multimapper_inclusive/merged/{sample_group}.bw"
+    conda:
+        "../envs/zscore_normalize_bw.yaml"
+    script:
+        "../scripts/zscore_normalize_bw.R"
+
+
+rule zscore_normalize_hybrid_unique_merged_bigwigs:
+    input:
+        "results/hybrid_ase/bigwigs/unique_only_merged/{sample_group}.bw"
+    output:
+        "results/hybrid_ase/bigwigs_zscore/unique_only/merged/{sample_group}.bw"
+    conda:
+        "../envs/zscore_normalize_bw.yaml"
+    script:
+        "../scripts/zscore_normalize_bw.R"
