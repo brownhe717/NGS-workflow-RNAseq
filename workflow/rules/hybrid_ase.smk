@@ -231,3 +231,48 @@ rule hybrid_snp_pileup:
             -Ob \
             -o {output.bcf}
         """
+
+rule make_bigwigs_hybrid_multi:
+    input:
+        bam="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+        bai="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam.bai"
+    output:
+        "results/hybrid_ase/bigwigs/multimapper_inclusive/{sample_name}.bw"
+    conda:
+        "../envs/deeptools.yaml"
+    params:
+        extra=config["params"]["bigwigs_ind"]
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive
+
+        bamCoverage \
+            --bam {input.bam} \
+            -o {output} \
+            -p {threads} \
+            {params.extra}
+        """
+
+
+rule make_bigwigs_hybrid_unique:
+    input:
+        bam="results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
+        bai="results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam.bai"
+    output:
+        "results/hybrid_ase/bigwigs/unique_only/{sample_name}.bw"
+    conda:
+        "../envs/deeptools.yaml"
+    params:
+        extra=config["params"]["bigwigs_ind"]
+    threads: 8
+    shell:
+        r"""
+        mkdir -p results/hybrid_ase/bigwigs/unique_only
+
+        bamCoverage \
+            --bam {input.bam} \
+            -o {output} \
+            -p {threads} \
+            {params.extra}
+        """
