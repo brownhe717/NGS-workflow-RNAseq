@@ -14,11 +14,11 @@ keep_chroms: config/keep_chroms.txt
 # Kept for the original dm6-only RNA-seq workflow/rules.
 ref_genome:
   name: dm6
-  link: https://hgdownload.soe.ucsc.edu/goldenPath/dm6/bigZips/dm6.fa.gz
+  link: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/215/GCF_000001215.4_Release_6_plus_ISO1_MT/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.fna.gz
 
 ref_annotation:
   name: flybase_dm6
-  link: https://ftp.flybase.org/genomes/dmel/current/gtf/dmel-all-r6.60.gtf.gz
+  link: https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/215/GCF_000001215.4_Release_6_plus_ISO1_MT/GCF_000001215.4_Release_6_plus_ISO1_MT_genomic.gtf.gz
 
 # concatenated mel/sim reference for hybrid ASE --------------------------------------------
 # These files are expected to be prebuilt manually before running Snakemake.
@@ -50,7 +50,7 @@ hybrid_ase:
   # This creates separate BAMs for stricter gene-level ASE/cis-trans analyses.
   make_unique_bams: True
   unique_filter_method: NH
-  unique_bam_min_mapq: 0
+  unique_bam_min_mapq: 20
 
   # featureCounts multimapper behavior.
   # Used for TE/repeat/pericentromeric analyses from the multimapper-inclusive BAMs.
@@ -61,7 +61,9 @@ hybrid_ase:
   # Each parent must have at least this many reads at a site for it to be retained.
   min_snp_depth: 10
 
-  # Keep False for now; later this can switch strict ASE steps to unique-only BAMs.
+  # Future toggle for strict SNP-based ASE workflows.
+  # Current concat-based workflow already uses unique-only BAMs
+  # for diagnostic SNP and ASE-related steps.
   unique_only_ase: False
 
 # spike-in genome options -------------------------------------------------------------------
@@ -74,7 +76,7 @@ spikeIn_genome:
 # DESeq2 options ----------------------------------------------------------------------------
 # Keep FALSE for now. The hybrid-vs-synthetic contrast is included for later,
 # after we add a rule that creates synthetic-control count columns.
-run_diff_exp: FALSE
+run_diff_exp: False
 
 diff_exp:
   experiments:
@@ -92,13 +94,10 @@ diff_exp:
 params:
   hisat2_index: ""
 
-  # Base HISAT2 options. The -k value is added from hybrid_ase.hisat2_k.
   hisat2_align: "--very-sensitive --no-mixed --no-discordant"
 
-  # Retain multimappers instead of filtering to unique alignments only.
   filter_multireads: "-f bam -F '(mapping_quality >= 0)'"
 
-  # Paired-end featureCounts with multimappers retained fractionally.
   featurecounts_unique: "-p"
   featurecounts_multi: "-p -M --fraction"
 
