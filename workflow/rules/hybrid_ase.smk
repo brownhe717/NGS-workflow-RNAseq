@@ -139,11 +139,11 @@ rule featurecounts_concat:
 rule call_parental_snps_concat:
     input:
         mel=expand(
-            "results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+            "results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
             sample_name=samples.query("ase_role == 'mel_parent'").index
         ),
         sim=expand(
-            "results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+            "results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
             sample_name=samples.query("ase_role == 'sim_parent'").index
         ),
         ref=config["ref_concat"]["genome"]["fasta"]
@@ -206,7 +206,7 @@ rule filter_diagnostic_snps:
 
 rule hybrid_snp_pileup:
     input:
-        bam="results/hybrid_ase/aligned/{sample_name}.concat.sorted.bam",
+        bam="results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
         vcf="results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz",
         ref=config["ref_concat"]["genome"]["fasta"]
     output:
