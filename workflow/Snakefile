@@ -36,15 +36,6 @@ rule all:
         "results/hybrid_ase/counts/concat_featureCounts_unique.txt",
         "results/hybrid_ase/counts/concat_featureCounts_multi_fraction.txt",
 
-        # diagnostic SNP VCF
-        "results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz",
-
-        # hybrid ASE BCF pileups
-        expand(
-            "results/hybrid_ase/allele_counts/{sample_name}.diagnostic_sites.bcf",
-            sample_name=samples.query("ase_role == 'hybrid'").index
-        ),
-
         # raw individual bigWigs
         expand(
             "results/hybrid_ase/bigwigs/multimapper_inclusive/{sample_name}.bw",
