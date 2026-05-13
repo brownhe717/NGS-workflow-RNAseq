@@ -1,6 +1,5 @@
 import os
 
-
 HYBRID_ASE_ENV = "../envs/hybrid_ase.yaml"
 
 
@@ -71,8 +70,9 @@ rule hisat2_align_concat:
             -@ {threads} \
             -o {output.bam}
 
-        samtools index {output.bam}
+        samtools index {output.bam} 2>> {log}
         """
+
 
 rule filter_unique_concat_bam:
     input:
@@ -108,6 +108,7 @@ rule filter_unique_concat_bam:
         echo "Created unique-only BAM from {input.bam}" >> {log}
         """
 
+
 rule featurecounts_concat_multi:
     input:
         bam=expand(
@@ -136,6 +137,7 @@ rule featurecounts_concat_multi:
             {input.bam} \
             > {log} 2>&1
         """
+
 
 rule featurecounts_concat_unique:
     input:
@@ -166,101 +168,20 @@ rule featurecounts_concat_unique:
             > {log} 2>&1
         """
 
+
+'''
+SNP-based ASE rules are paused for now.
+
 rule call_parental_snps_concat:
-    input:
-        mel=expand(
-            "results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
-            sample_name=samples.query("ase_role == 'mel_parent'").index
-        ),
-        sim=expand(
-            "results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
-            sample_name=samples.query("ase_role == 'sim_parent'").index
-        ),
-        ref=config["ref_concat"]["genome"]["fasta"]
-    output:
-        vcf="results/hybrid_ase/snps/parental_raw.vcf.gz",
-        tbi="results/hybrid_ase/snps/parental_raw.vcf.gz.tbi"
-    conda:
-        HYBRID_ASE_ENV
-    log:
-        "logs/hybrid_ase/call_parental_snps_concat.log"
-    threads: 8
-    shell:
-        r"""
-        mkdir -p results/hybrid_ase/snps logs/hybrid_ase
-
-        bcftools mpileup \
-            -Ou \
-            -f {input.ref} \
-            -a FORMAT/DP,FORMAT/AD \
-            {input.mel} \
-            {input.sim} \
-            2> {log} | \
-        bcftools call \
-            -mv \
-            -Oz \
-            -o {output.vcf}
-
-        tabix -p vcf {output.vcf}
-        """
-
+    ...
 
 rule filter_diagnostic_snps:
-    input:
-        vcf="results/hybrid_ase/snps/parental_raw.vcf.gz"
-    output:
-        vcf="results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz",
-        tbi="results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz.tbi"
-    conda:
-        HYBRID_ASE_ENV
-    params:
-        min_depth=config["hybrid_ase"]["min_snp_depth"]
-    log:
-        "logs/hybrid_ase/filter_diagnostic_snps.log"
-    shell:
-        r"""
-        mkdir -p results/hybrid_ase/snps logs/hybrid_ase
-
-        bcftools view \
-            -v snps \
-            -m2 -M2 \
-            -i 'FORMAT/DP[0]>={params.min_depth} && FORMAT/DP[1]>={params.min_depth} && ((GT[0]="0/0" && GT[1]="1/1") || (GT[0]="1/1" && GT[1]="0/0"))' \
-            {input.vcf} \
-            -Oz \
-            -o {output.vcf} \
-            2> {log}
-
-        tabix -p vcf {output.vcf}
-        """
-
+    ...
 
 rule hybrid_snp_pileup:
-    input:
-        bam="results/hybrid_ase/aligned_unique/{sample_name}.concat.unique.sorted.bam",
-        vcf="results/hybrid_ase/snps/diagnostic_mel_sim_snps.vcf.gz",
-        ref=config["ref_concat"]["genome"]["fasta"]
-    output:
-        bcf="results/hybrid_ase/allele_counts/{sample_name}.diagnostic_sites.bcf"
-    conda:
-        HYBRID_ASE_ENV
-    log:
-        "logs/hybrid_ase/allele_counts/{sample_name}.log"
-    shell:
-        r"""
-        mkdir -p results/hybrid_ase/allele_counts logs/hybrid_ase/allele_counts
+    ...
+'''
 
-        bcftools mpileup \
-            -Ou \
-            -f {input.ref} \
-            -R {input.vcf} \
-            -a FORMAT/DP,FORMAT/AD \
-            {input.bam} \
-            2> {log} | \
-        bcftools call \
-            -m \
-            -Ob \
-            -o {output.bcf}
-        """
 
 rule make_bigwigs_hybrid_multi:
     input:
@@ -272,16 +193,19 @@ rule make_bigwigs_hybrid_multi:
         "../envs/deeptools.yaml"
     params:
         extra=config["params"]["bigwigs_ind"]
+    log:
+        "logs/hybrid_ase/bigwigs_multi/{sample_name}.log"
     threads: 8
     shell:
         r"""
-        mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive
+        mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive logs/hybrid_ase/bigwigs_multi
 
         bamCoverage \
             --bam {input.bam} \
             -o {output} \
             -p {threads} \
-            {params.extra}
+            {params.extra} \
+            > {log} 2>&1
         """
 
 
@@ -295,19 +219,22 @@ rule make_bigwigs_hybrid_unique:
         "../envs/deeptools.yaml"
     params:
         extra=config["params"]["bigwigs_ind"]
+    log:
+        "logs/hybrid_ase/bigwigs_unique/{sample_name}.log"
     threads: 8
     shell:
         r"""
-        mkdir -p results/hybrid_ase/bigwigs/unique_only
+        mkdir -p results/hybrid_ase/bigwigs/unique_only logs/hybrid_ase/bigwigs_unique
 
         bamCoverage \
             --bam {input.bam} \
             -o {output} \
             -p {threads} \
-            {params.extra}
+            {params.extra} \
+            > {log} 2>&1
         """
 
-# Hybrid bigWig helper: merge BAMs by condition/sample group
+
 HYBRID_SAMPLE_GROUPS = sorted(samples["condition"].unique())
 
 
@@ -335,18 +262,21 @@ rule merge_hybrid_multi_bam:
         bai="results/hybrid_ase/aligned_merged/multimapper_inclusive/{sample_group}.bam.bai"
     conda:
         HYBRID_ASE_ENV
+    log:
+        "logs/hybrid_ase/merge_multi/{sample_group}.log"
     threads: 8
     shell:
         r"""
-        mkdir -p results/hybrid_ase/aligned_merged/multimapper_inclusive
+        mkdir -p results/hybrid_ase/aligned_merged/multimapper_inclusive logs/hybrid_ase/merge_multi
 
         samtools merge \
             -@ {threads} \
             -f \
             {output.bam} \
-            {input}
+            {input} \
+            2> {log}
 
-        samtools index {output.bam}
+        samtools index {output.bam} 2>> {log}
         """
 
 
@@ -358,18 +288,21 @@ rule merge_hybrid_unique_bam:
         bai="results/hybrid_ase/aligned_merged/unique_only/{sample_group}.bam.bai"
     conda:
         HYBRID_ASE_ENV
+    log:
+        "logs/hybrid_ase/merge_unique/{sample_group}.log"
     threads: 8
     shell:
         r"""
-        mkdir -p results/hybrid_ase/aligned_merged/unique_only
+        mkdir -p results/hybrid_ase/aligned_merged/unique_only logs/hybrid_ase/merge_unique
 
         samtools merge \
             -@ {threads} \
             -f \
             {output.bam} \
-            {input}
+            {input} \
+            2> {log}
 
-        samtools index {output.bam}
+        samtools index {output.bam} 2>> {log}
         """
 
 
@@ -383,16 +316,19 @@ rule make_bigwigs_hybrid_multi_merged:
         "../envs/deeptools.yaml"
     params:
         extra=config["params"]["bigwigs_merged"]
+    log:
+        "logs/hybrid_ase/bigwigs_multi_merged/{sample_group}.log"
     threads: 8
     shell:
         r"""
-        mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive_merged
+        mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive_merged logs/hybrid_ase/bigwigs_multi_merged
 
         bamCoverage \
             --bam {input.bam} \
             -o {output} \
             -p {threads} \
-            {params.extra}
+            {params.extra} \
+            > {log} 2>&1
         """
 
 
@@ -406,16 +342,19 @@ rule make_bigwigs_hybrid_unique_merged:
         "../envs/deeptools.yaml"
     params:
         extra=config["params"]["bigwigs_merged"]
+    log:
+        "logs/hybrid_ase/bigwigs_unique_merged/{sample_group}.log"
     threads: 8
     shell:
         r"""
-        mkdir -p results/hybrid_ase/bigwigs/unique_only_merged
+        mkdir -p results/hybrid_ase/bigwigs/unique_only_merged logs/hybrid_ase/bigwigs_unique_merged
 
         bamCoverage \
             --bam {input.bam} \
             -o {output} \
             -p {threads} \
-            {params.extra}
+            {params.extra} \
+            > {log} 2>&1
         """
 
 
@@ -424,6 +363,9 @@ rule zscore_normalize_hybrid_multi_ind_bigwigs:
         "results/hybrid_ase/bigwigs/multimapper_inclusive/{sample_name}.bw"
     output:
         "results/hybrid_ase/bigwigs_zscore/multimapper_inclusive/individual/{sample_name}.bw"
+    resources:
+        mem_mb=32000,
+        high_mem=1
     conda:
         "../envs/zscore_normalize_bw.yaml"
     script:
@@ -435,6 +377,9 @@ rule zscore_normalize_hybrid_unique_ind_bigwigs:
         "results/hybrid_ase/bigwigs/unique_only/{sample_name}.bw"
     output:
         "results/hybrid_ase/bigwigs_zscore/unique_only/individual/{sample_name}.bw"
+    resources:
+        mem_mb=32000,
+        high_mem=1
     conda:
         "../envs/zscore_normalize_bw.yaml"
     script:
@@ -446,6 +391,9 @@ rule zscore_normalize_hybrid_multi_merged_bigwigs:
         "results/hybrid_ase/bigwigs/multimapper_inclusive_merged/{sample_group}.bw"
     output:
         "results/hybrid_ase/bigwigs_zscore/multimapper_inclusive/merged/{sample_group}.bw"
+    resources:
+        mem_mb=32000,
+        high_mem=1
     conda:
         "../envs/zscore_normalize_bw.yaml"
     script:
@@ -457,6 +405,9 @@ rule zscore_normalize_hybrid_unique_merged_bigwigs:
         "results/hybrid_ase/bigwigs/unique_only_merged/{sample_group}.bw"
     output:
         "results/hybrid_ase/bigwigs_zscore/unique_only/merged/{sample_group}.bw"
+    resources:
+        mem_mb=32000,
+        high_mem=1
     conda:
         "../envs/zscore_normalize_bw.yaml"
     script:
