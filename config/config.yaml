@@ -41,6 +41,9 @@ ref_concat:
 hybrid_ase:
   activate: True
 
+  # concat-specific chromosome filtering
+  keep_chroms_concat: config/keep_chroms_concat.txt
+
   # HISAT2 multimapping behavior.
   # If keep_multimappers is True, hisat2_align_concat adds -k hisat2_k.
   keep_multimappers: True
