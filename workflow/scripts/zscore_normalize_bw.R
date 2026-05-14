@@ -23,11 +23,30 @@ zscore_bw <- function(bw) {
   }
   
   if (snakemake@config[["filter_chroms"]]) {
-    message("filtering reference chromosomes")
-    keep_chroms <- read_tsv(snakemake@config[["keep_chroms"]], col_names = c("chromosome"))
-    ref_chroms <- seqlevels(bw)[seqlevels(bw) %in% keep_chroms$chromosome]
-    bw <- keepSeqlevels(bw, ref_chroms, pruning.mode = "coarse")
+  message("filtering reference chromosomes")
+
+  keep_chroms_file <- snakemake@config[["keep_chroms"]]
+
+  # Use concat-specific chromosome list for hybrid ASE bigWigs
+  if (grepl("results/hybrid_ase/", snakemake@input[[1]])) {
+    keep_chroms_file <- snakemake@config[["hybrid_ase"]][["keep_chroms_concat"]]
   }
+
+  keep_chroms <- read_tsv(keep_chroms_file, col_names = c("chromosome"))
+
+  ref_chroms <- seqlevels(bw)[seqlevels(bw) %in% keep_chroms$chromosome]
+
+  if (length(ref_chroms) == 0) {
+    stop(
+      "No matching chromosomes found between bigWig and keep_chroms file: ",
+      keep_chroms_file,
+      "\nBigWig chromosomes include: ",
+      paste(head(seqlevels(bw), 20), collapse = ", ")
+    )
+  }
+
+  bw <- keepSeqlevels(bw, ref_chroms, pruning.mode = "coarse")
+}
   
   
   # for large regions with the same score, expand into equal sized bins
