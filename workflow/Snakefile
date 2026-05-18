@@ -30,7 +30,6 @@ include: "rules/diff_exp.smk"
 ##### target rules #####
 rule all:
     input:
-        
         # featureCounts outputs
         "results/hybrid_ase/counts/concat_featureCounts_unique.txt",
         "results/hybrid_ase/counts/concat_featureCounts_multi_fraction.txt",
