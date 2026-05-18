@@ -40,7 +40,17 @@ rpkm_table <- rpkm(count_table = select(counts, -c("Length")), widths = counts$L
 gene_annotation <- rtracklayer::import(snakemake@input[["annotation"]]) |> 
   mcols() |>
   as.data.frame() |>
-  filter(type == "gene") |>
+  filter(type == "gene")
+
+if (!"gene_name" %in% colnames(gene_annotation)) {
+  if ("gene" %in% colnames(gene_annotation)) {
+    gene_annotation$gene_name <- gene_annotation$gene
+  } else {
+    gene_annotation$gene_name <- gene_annotation$gene_id
+  }
+}
+
+gene_annotation <- gene_annotation |>
   dplyr::select(gene_id, gene_name)
 
 rpkm_table <- rpkm_table |> 
