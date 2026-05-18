@@ -16,18 +16,15 @@ rule get_ref_genome:
 
 
 rule get_genome_annotation:
+    input:
+        "resources/mel_sim_concat/mel_sim_concat.gtf"
     output:
-        "resources/dm6.ncbiRefSeq.gtf"
+        "resources/mel_sim_concat/mel_sim_concat.annotation.gtf"
     log:
         "logs/get_genome_annotation.log"
-    conda:
-        "../envs/curl.yaml"
-    params:
-        link=config["ref_annotation"]["link"]
-    cache: True
     shell:
         r"""
-        curl -L {params.link} 2> {log} | gunzip -c > {output}
+        cp {input} {output} 2> {log}
         """
 
 
