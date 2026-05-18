@@ -1,7 +1,7 @@
 rule feature_counts:
 	input:
 		samples=get_featurecounts_input,  # list of sam or bam files
-		annotation="resources/dm6.ncbiRefSeq.gtf",
+		annotation=rules.get_genome_annotation.output,
 
 	output:
 		multiext(
