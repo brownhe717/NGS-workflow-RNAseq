@@ -54,7 +54,7 @@ rule hisat2_align_concat:
         )
     log:
         "logs/hybrid_ase/hisat2_align/{sample_name}.log"
-    threads: 8
+    threads: 4
     shell:
         r"""
         mkdir -p results/hybrid_ase/aligned logs/hybrid_ase/hisat2_align
@@ -87,7 +87,7 @@ rule filter_unique_concat_bam:
         min_mapq=config["hybrid_ase"]["unique_bam_min_mapq"]
     log:
         "logs/hybrid_ase/filter_unique/{sample_name}.log"
-    threads: 4
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/aligned_unique logs/hybrid_ase/filter_unique
@@ -124,7 +124,7 @@ rule featurecounts_concat_multi:
         extra=config["params"]["featurecounts_multi"]
     log:
         "logs/hybrid_ase/featureCounts_concat_multi.log"
-    threads: 8
+    threads: 4
     shell:
         r"""
         mkdir -p results/hybrid_ase/counts logs/hybrid_ase
@@ -154,7 +154,7 @@ rule featurecounts_concat_unique:
         extra=config["params"]["featurecounts_unique"]
     log:
         "logs/hybrid_ase/featureCounts_concat_unique.log"
-    threads: 8
+    threads: 4
     shell:
         r"""
         mkdir -p results/hybrid_ase/counts logs/hybrid_ase
@@ -195,7 +195,7 @@ rule make_bigwigs_hybrid_multi:
         extra=config["params"]["bigwigs_ind"]
     log:
         "logs/hybrid_ase/bigwigs_multi/{sample_name}.log"
-    threads: 8
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive logs/hybrid_ase/bigwigs_multi
@@ -221,7 +221,7 @@ rule make_bigwigs_hybrid_unique:
         extra=config["params"]["bigwigs_ind"]
     log:
         "logs/hybrid_ase/bigwigs_unique/{sample_name}.log"
-    threads: 8
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/bigwigs/unique_only logs/hybrid_ase/bigwigs_unique
@@ -264,7 +264,7 @@ rule merge_hybrid_multi_bam:
         HYBRID_ASE_ENV
     log:
         "logs/hybrid_ase/merge_multi/{sample_group}.log"
-    threads: 8
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/aligned_merged/multimapper_inclusive logs/hybrid_ase/merge_multi
@@ -290,7 +290,7 @@ rule merge_hybrid_unique_bam:
         HYBRID_ASE_ENV
     log:
         "logs/hybrid_ase/merge_unique/{sample_group}.log"
-    threads: 8
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/aligned_merged/unique_only logs/hybrid_ase/merge_unique
@@ -318,7 +318,7 @@ rule make_bigwigs_hybrid_multi_merged:
         extra=config["params"]["bigwigs_merged"]
     log:
         "logs/hybrid_ase/bigwigs_multi_merged/{sample_group}.log"
-    threads: 8
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/bigwigs/multimapper_inclusive_merged logs/hybrid_ase/bigwigs_multi_merged
@@ -344,7 +344,7 @@ rule make_bigwigs_hybrid_unique_merged:
         extra=config["params"]["bigwigs_merged"]
     log:
         "logs/hybrid_ase/bigwigs_unique_merged/{sample_group}.log"
-    threads: 8
+    threads: 2
     shell:
         r"""
         mkdir -p results/hybrid_ase/bigwigs/unique_only_merged logs/hybrid_ase/bigwigs_unique_merged
