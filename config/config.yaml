@@ -101,8 +101,8 @@ params:
 
   filter_multireads: "-f bam -F '(mapping_quality >= 0)'"
 
-  featurecounts_unique: "-p"
-  featurecounts_multi: "-p -M --fraction"
+  featurecounts_unique: "-p --countReadPairs -t exon -g gene_id"
+  featurecounts_multi: "-p --countReadPairs -M --fraction -t exon -g gene_id"
 
   bigwigs_ind: "--binSize 10"
   bigwigs_merged: "--binSize 10"
